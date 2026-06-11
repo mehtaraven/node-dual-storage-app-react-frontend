@@ -1,122 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+// ─────────────────────────────────────────────────────────────────────────────
+// APP.JS — The root component that sets up page routing
+// ─────────────────────────────────────────────────────────────────────────────
+// In a traditional server-rendered app (Spring + Thymeleaf), each URL is a
+// separate HTTP request to the server, which returns a full HTML page.
+//
+// In React (SPA), the browser loads ONE HTML page, and JavaScript handles
+// navigation by showing/hiding components. The URL changes but NO server
+// request is made for the page itself (only API calls for data).
+//
+// react-router-dom makes this work by:
+//   - Watching the browser URL
+//   - Rendering the component that matches the current path
+//   - Updating the URL when you navigate (without page reload)
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React from 'react';
+// ▲ Import React library. Required in every component file.
+//   In newer React (17+), this import is technically optional for JSX,
+//   but it's good practice to include it for clarity.
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// ▲ Import routing components:
+//   BrowserRouter (aliased as Router) — wraps your entire app to enable routing
+//   Routes — container for all your route definitions
+//   Route — maps a URL path to a component
+//   Navigate — programmatic redirect (like Spring's "redirect:/login")
+
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    // Router wraps everything — enables URL-based navigation
+    // Spring equivalent: This is like your DispatcherServlet + ViewResolver
+    <Router>
+      <Routes>
+        {/* /login → show Login component */}
+        <Route path="/login" element={<Login />} />
 
-      <div className="ticks"></div>
+        {/* /signup → show Signup component */}
+        <Route path="/signup" element={<Signup />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* /dashboard → show Dashboard component (protected inside) */}
+        <Route path="/dashboard" element={<Dashboard />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* / (root) → redirect to login */}
+        {/* Navigate replaces the URL — like "redirect:/login" in Spring */}
+        <Route path="/" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
