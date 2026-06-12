@@ -1,28 +1,21 @@
 import React from 'react';
 
 function UserInfo() {
-  // Decode the JWT payload to get user info
-  // JWT structure: header.payload.signature (all Base64-encoded)
-  // We split on ".", take the middle part (payload), and decode it
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token'); // Decode the JWT payload to get user info
 
   let userInfo = { email: '—', storage_type: '—' };
 
   if (token) {
     try {
-      // Split token into 3 parts, take the payload (index 1)
       const payload = token.split('.')[1];
 
-      // atob() decodes Base64 → string (built-in browser function)
-      // JSON.parse converts the JSON string → object
-      const decoded = JSON.parse(atob(payload));
+      const decoded = JSON.parse(atob(payload)); // atob decodes Base64 string → normal string && JSON.parse converts the JSON string → object
 
       userInfo = {
         email: decoded.email || '—',
         storage_type: decoded.storage_type || '—'
       };
     } catch (e) {
-      // If token is malformed, just show defaults
       console.error('Failed to decode token:', e);
     }
   }
