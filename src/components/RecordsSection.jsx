@@ -10,10 +10,25 @@ function RecordsSection() {
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [userStorageType, setUserStorageType] = useState('');
 
   useEffect(() => {
     loadRecords();
+    extractUserStorageType();
   }, []);
+
+  function extractUserStorageType() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = token.split('.')[1];
+        const decoded = JSON.parse(atob(payload));
+        setUserStorageType(decoded.storage_type);
+      } catch (e) {
+        console.error('Failed to decode token:', e);
+      }
+    }
+  }
 
   const loadRecords = async () => {
     const result = await apiRequest('/records');
@@ -27,17 +42,27 @@ function RecordsSection() {
     setMessage('');
     setError('');
 
-    if (!name.trim() || !firstName.trim() || !lastName.trim()) {
+    // Name is only required for file storage
+    if (userStorageType === 'file' && !name.trim()) {
+      setError('Record Name is required for file storage');
+      return;
+    }
+
+    if (!firstName.trim() || !lastName.trim()) {
       setError('Name, First Name, and Last Name are required');
       return;
     }
 
     const body = {
-      name: name.trim(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone.trim() || null  // Send null if empty (optional field)
     };
+
+    // Only include name for file storage users
+    if (userStorageType === 'file') {
+      body.name = name.trim();
+    }
 
     if (editingId) {
       // UPDATE
@@ -55,6 +80,7 @@ function RecordsSection() {
       }
     } else {
       // CREATE
+      console.log("create >> body", body)
       const result = await apiRequest('/records', {
         method: 'POST',
         body: JSON.stringify(body)
@@ -104,60 +130,89 @@ function RecordsSection() {
   };
 
   return (
-    <div>
-      <h2>Records</h2>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div style={{ display: "flex", flexDirection: "column", alignContent: "center", alignItems: "center", padding: "20px", marginBottom: "50px" }}>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Record Name: * </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={50}
-            placeholder="Unique name (becomes filename)"
-            disabled={!!editingId}  // Can't change name when editing (it's the ID)
-          />
-        </div>
-        <div>
-          <label>First Name: * </label>
-          <input
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            maxLength={50}
-            placeholder="Required"
-          />
-        </div>
-        <div>
-          <label>Last Name: * </label>
-          <input
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            maxLength={50}
-            placeholder="Required"
-          />
-        </div>
-        <div>
-          <label>Phone: </label>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            maxLength={20}
-            placeholder="Optional"
-          />
-        </div>
+      <div style={{ width: "fit-content", border: '1px solid #ccc', padding: '30px', borderRadius: '20px' }}>
+        <h2 style={{ marginBottom: '20px' }}>Add Record</h2>
 
-        <button type="submit">{editingId ? 'Update Record' : 'Add Record'}</button>
-        {editingId && <button type="button" onClick={resetForm}>Cancel</button>}
-      </form>
+        {message && <p style={{ color: 'green', marginBottom: '10px' }}>{message}</p>}
+        {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
 
-      {editingId && <p><em>Editing: {name}</em></p>}
+        <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
+          {/* Only show Record Name for file storage users — it becomes the filename */}
+          {userStorageType === 'file' && (
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+              <label style={{ width: '130px', fontWeight: 'bold' }}>Record Name:*</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={50}
+                placeholder="Unique name (becomes filename)"
+                disabled={!!editingId}
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              />
+            </div>
+          )}
 
-      <table border="1" cellPadding="8" style={{ marginTop: '15px', borderCollapse: 'collapse' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+            <label style={{ width: '130px', fontWeight: 'bold' }}>First Name: *</label>
+            <input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              maxLength={50}
+              placeholder="Required"
+              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+            <label style={{ width: '130px', fontWeight: 'bold' }}>Last Name: *</label>
+            <input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              maxLength={50}
+              placeholder="Required"
+              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <label style={{ width: '130px', fontWeight: 'bold' }}>Phone:</label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              maxLength={20}
+              placeholder="Optional"
+              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="submit"
+              style={{ padding: '10px 20px', cursor: 'pointer', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', fontSize: '14px', marginLeft: "35%" }}
+            >
+              {editingId ? 'Update Record' : 'Add Record'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                style={{ padding: '10px 20px', cursor: 'pointer', background: '#666', color: 'white', border: 'none', borderRadius: '4px', fontSize: '14px' }}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {editingId && <p style={{ marginTop: '10px' }}><em>Editing: {name}</em></p>}
+
+      <table border="1" cellPadding="8" style={{ marginTop: '60px', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th>Record Name</th>
+            {userStorageType === 'file' && <th>Record Name</th>}
             <th>First Name</th>
             <th>Last Name</th>
             <th>Phone</th>
@@ -166,11 +221,11 @@ function RecordsSection() {
         </thead>
         <tbody>
           {records.length === 0 ? (
-            <tr><td colSpan="5">No records yet. Add one above!</td></tr>
+            <tr><td colSpan={userStorageType === 'file' ? 5 : 4}>No records yet. Add one above!</td></tr>
           ) : (
             records.map(record => (
               <tr key={record.id}>
-                <td>{record.name}</td>
+                {userStorageType === 'file' && <td>{record.name}</td>}
                 <td>{record.firstName}</td>
                 <td>{record.lastName}</td>
                 <td>{record.phone || '—'}</td>
@@ -183,7 +238,7 @@ function RecordsSection() {
           )}
         </tbody>
       </table>
-    </div>
+    </div >
   );
 }
 

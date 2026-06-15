@@ -21,7 +21,7 @@ function UserInfo() {
   }
 
   return (
-    <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #ccc' }}>
+    <div style={{ marginBottom: '40px', padding: '10px', border: '1px solid #ccc' }}>
       <h2>User Info</h2>
       <p><strong>Email:</strong> {userInfo.email}</p>
       <p><strong>Storage Type:</strong> {userInfo.storage_type === 'file' ? 'File Storage' : 'MongoDB'}</p>
