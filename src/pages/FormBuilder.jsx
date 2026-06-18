@@ -1,22 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
 // FORM BUILDER PAGE
-// ─────────────────────────────────────────────────────────────────────────────
-// Layout: LEFT (json editor) | MIDDLE (process button) | RIGHT (rendered form)
-//
-// Flow:
-//   1. User types/pastes/uploads JSON on the left
-//   2. User clicks "Process" in the middle
-//   3. We parse the JSON
-//   4. If valid → render the form on the right
-//   5. If invalid → show error below the button
-//
-// Nothing happens until "Process" is clicked. 
-// This keeps it simple and predictable.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ComponentRegistry from '../components/dynamic/ComponentRegistry';
+import { apiRequest } from '../utils/api';
 
 // Sample JSON shown when the page first loads (so it's not empty)
 const SAMPLE_JSON = JSON.stringify({
@@ -38,6 +25,7 @@ function FormBuilder() {
   const [error, setError] = useState('');                  // Parse error message
   const [formData, setFormData] = useState({});            // Dynamic form field values
   const [submitted, setSubmitted] = useState(null);        // Shows submitted data
+  const [publishMessage, setPublishMessage] = useState('');
 
   const navigate = useNavigate();
 
@@ -49,6 +37,21 @@ function FormBuilder() {
       return;
     }
   }, [navigate]);
+
+  const handlePublish = async () => {
+    if (!parsedConfig) return;
+
+    const result = await apiRequest('/schemas', {
+      method: 'POST',
+      body: JSON.stringify(parsedConfig)
+    });
+
+    if (result && result.ok) {
+      setPublishMessage(`Published! Users can access at: /forms/${parsedConfig.screenName}`);
+    } else if (result) {
+      setPublishMessage(`Error: ${result.data.error}`);
+    }
+  };
 
   // ─── PROCESS BUTTON HANDLER ───
   const handleProcess = () => {
@@ -260,6 +263,31 @@ function FormBuilder() {
               // Nothing processed yet — show placeholder
               <p style={{ color: '#999', textAlign: 'center', marginTop: '200px' }}>
                 Write JSON on the left and click "Process" to render the form here
+              </p>
+            )}
+
+            {parsedConfig && (
+              <button
+                onClick={handlePublish}
+                style={{
+                  marginTop: '15px',
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  background: '#4caf50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold'
+                }}
+              >
+                📤 Publish
+              </button>
+            )}
+
+            {publishMessage && (
+              <p style={{ marginTop: '10px', fontSize: '12px', textAlign: 'center', maxWidth: '160px', color: '#4caf50' }}>
+                {publishMessage}
               </p>
             )}
 

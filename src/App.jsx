@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import FormBuilder from './pages/FormBuilder';
+import DynamicForm from './components/dynamic/DynamicForm';
+
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/forms/:type" element={<DynamicForm />} />
 
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
